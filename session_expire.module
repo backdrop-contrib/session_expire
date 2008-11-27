@@ -9,19 +9,16 @@ define('SESSION_EXPIRE_AGE',      'session_expire_age');
 define('SESSION_EXPIRE_MODE',     'session_expire_mode');
 define('SESSION_EXPIRE_LAST',     'session_expire_last');
 
-function session_expire_menu($may_cache) {
+function session_expire_menu() {
   $items = array();
-  if ($may_cache) {
-    $items[] = array(
-      'path'               => 'admin/settings/session_expire',
-      'type'               => MENU_NORMAL_ITEM,
-      'title'              => t('Session expire'),
-      'description'        => t('Settings for session expiry'),
-      'callback'           => 'drupal_get_form',
-      'callback arguments' => array('session_expire_settings'),
-      'access'             => user_access('administer site configuration'),
-    );
-  }
+	$items['admin/settings/session_expire'] = array(
+		'type'               => MENU_NORMAL_ITEM,
+		'title'              => t('Session expire'),
+		'description'        => t('Settings for session expiry'),
+		'page callback'      => 'drupal_get_form',
+		'page arguments'     => array('session_expire_settings'),
+		'access arguments'   => array('administer site configuration'),
+	);
   return $items;
 }
 

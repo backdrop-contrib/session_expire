@@ -23,7 +23,7 @@ collection configuration.
 Installation
 ------------
 To install, copy the module's directory and all its contents to your modules
-directory.
+directory, normall sites/all/modules.
 
 Configuration
 -------------
