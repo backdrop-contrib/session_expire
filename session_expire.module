@@ -1,24 +1,32 @@
-<?php 
-
+<?php
 // $Id$
 
-// Copyright 2007 Khalid Baheyeldin http://2bits.com
+/**
+ * @file
+ * Expires rows from the session table older than a certain time.
+ *
+ * @copyright Copyright 2007 Khalid Baheyeldin http://2bits.com
+ */
 
 define('SESSION_EXPIRE_INTERVAL', 'session_expire_interval');
 define('SESSION_EXPIRE_AGE',      'session_expire_age');
 define('SESSION_EXPIRE_MODE',     'session_expire_mode');
 define('SESSION_EXPIRE_LAST',     'session_expire_last');
 
+/**
+ * Implementation of hook_menu().
+ *
+ * @return array
+ */
 function session_expire_menu() {
-  $items = array();
-	$items['admin/settings/session_expire'] = array(
-		'type'               => MENU_NORMAL_ITEM,
-		'title'              => t('Session expire'),
-		'description'        => t('Settings for session expiry'),
-		'page callback'      => 'drupal_get_form',
-		'page arguments'     => array('session_expire_settings'),
-		'access arguments'   => array('administer site configuration'),
-	);
+  $items['admin/settings/session_expire'] = array(
+    'type'               => MENU_NORMAL_ITEM,
+    'title'              => 'Session expire',
+    'description'        => 'Settings for session expiry',
+    'page callback'      => 'drupal_get_form',
+    'page arguments'     => array('session_expire_settings'),
+    'access arguments'   => array('administer site configuration'),
+  );
   return $items;
 }
 
@@ -62,6 +70,9 @@ function session_expire_settings() {
   return system_settings_form($form);
 }
 
+/**
+ * Implementation of hook_cron().
+ */
 function session_expire_cron() {
   // Check if it is the first time this hook fires
   $last_run_time = variable_get(SESSION_EXPIRE_LAST, 0);
@@ -75,6 +86,7 @@ function session_expire_cron() {
     $timestamp = time() - variable_get(SESSION_EXPIRE_AGE, 604800);
 
     // Check if we should delete anonymous only or both anonymous and authenticated users
+    $extra_cond = '';
     $mode = variable_get(SESSION_EXPIRE_MODE, 0);
     if (!$mode) {
       $extra_cond = 'AND uid = 0';
