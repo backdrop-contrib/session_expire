@@ -36,7 +36,8 @@ function session_expire_settings() {
     '#value' => t('This module requires cron to be correctly configured and running for Drupal.'),
   );
 
-  $interval = drupal_map_assoc(array(10800, 21600, 43200, 86400, 172800, 259200, 604800), 'format_interval');
+  $interval = drupal_map_assoc(array(0, 7200, 10800, 21600, 43200, 86400, 172800, 259200, 604800), 'format_interval');
+  $interval['0'] = t('Everytime');
   $form[SESSION_EXPIRE_INTERVAL] = array(
     '#type'          => 'select',
     '#title'         => t('Interval'),
@@ -45,7 +46,7 @@ function session_expire_settings() {
     '#description'   => t('Run the cleanup at the specified interval. This tells Drupal how often to run the cleanup. On a busy site, you want that to be more frequent (e.g. every day at a minimum). You don\'t want it to be too frequent though (e.g. every hour), as it can tie up the sessions table for a long time. Cron must be configured to run more frequently than the value you chose here.')
   );
 
-  $period = drupal_map_assoc(array(43200, 86400, 172800, 259200, 604800, 1209600, 2419200), 'format_interval');
+  $period = drupal_map_assoc(array(1800, 3600, 7200, 10800, 21600, 43200, 86400, 172800, 259200, 604800, 1209600, 2419200), 'format_interval');
   $period['1000000000'] = t('Never');
 
   $form[SESSION_EXPIRE_AGE] = array(
