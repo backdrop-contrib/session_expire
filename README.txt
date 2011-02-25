@@ -1,4 +1,3 @@
-$Id$
 
 Copyright 2007 http://2bits.com
 

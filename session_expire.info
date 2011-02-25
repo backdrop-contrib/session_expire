@@ -1,4 +1,3 @@
-; $Id$
 name = Session Expire
 description = Expires rows from the session table older than a certain time.
 core = 6.x
