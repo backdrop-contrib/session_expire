@@ -7,18 +7,22 @@
  * @copyright Copyright 2007 Khalid Baheyeldin http://2bits.com
  */
 
-define('SESSION_EXPIRE_INTERVAL', 'session_expire_interval');
-define('SESSION_EXPIRE_AGE',      'session_expire_age');
-define('SESSION_EXPIRE_MODE',     'session_expire_mode');
-define('SESSION_EXPIRE_LAST',     'session_expire_last');
+if(!defined('SESSION_EXPIRE_INTERVAL'))
+  define('SESSION_EXPIRE_INTERVAL', 'session_expire_interval');
+if(!defined('SESSION_EXPIRE_AGE'))
+  define('SESSION_EXPIRE_AGE',      'session_expire_age');
+if(!defined('SESSION_EXPIRE_MODE'))
+  define('SESSION_EXPIRE_MODE',     'session_expire_mode');
+if(!defined('SESSION_EXPIRE_LAST'))
+  define('SESSION_EXPIRE_LAST',     'session_expire_last');
 
 /**
- * Implementation of hook_menu().
+ * Implements hook_menu().
  *
  * @return array
  */
 function session_expire_menu() {
-  $items['admin/settings/session_expire'] = array(
+  $items['admin/config/system/session_expire'] = array(
     'type'               => MENU_NORMAL_ITEM,
     'title'              => 'Session expire',
     'description'        => 'Settings for session expiry',
@@ -53,7 +57,7 @@ function session_expire_settings() {
     '#title'         => t('Age'),
     '#default_value' => variable_get(SESSION_EXPIRE_AGE, 604800),
     '#options'       => $period,
-    '#description'   => t(' Expire sessions that are older than the specified age. Older entries will be discarded.')
+    '#description'   => t('Expire sessions that are older than the specified age. Older entries will be discarded.')
   );
 
   $form[SESSION_EXPIRE_MODE] = array(
@@ -71,34 +75,36 @@ function session_expire_settings() {
 }
 
 /**
- * Implementation of hook_cron().
+ * Implements hook_cron().
  */
 function session_expire_cron() {
   // Check if it is the first time this hook fires
   $last_run_time = variable_get(SESSION_EXPIRE_LAST, 0);
   if (!$last_run_time) {
     // Set the time
-    variable_set(SESSION_EXPIRE_LAST, time());
+    variable_set(SESSION_EXPIRE_LAST, REQUEST_TIME);
   }
 
   // Check if we should run, this should only be once a day
-  if (time() > $last_run_time + variable_get(SESSION_EXPIRE_INTERVAL, 86400)) {
-    $timestamp = time() - variable_get(SESSION_EXPIRE_AGE, 604800);
-
-    // Check if we should delete anonymous only or both anonymous and authenticated users
-    $extra_cond = '';
-    $mode = variable_get(SESSION_EXPIRE_MODE, 0);
-    if (!$mode) {
-      $extra_cond = 'AND uid = 0';
-    }
+  if (REQUEST_TIME > $last_run_time + variable_get(SESSION_EXPIRE_INTERVAL, 86400)) {
+    $timestamp = REQUEST_TIME - variable_get(SESSION_EXPIRE_AGE, 604800);
 
     // Perform the deletion
-    db_query("DELETE FROM {sessions} WHERE timestamp < %d $extra_cond", $timestamp);
+    //db_query("DELETE FROM {sessions} WHERE timestamp < %d $extra_cond", $timestamp);
+    $query = db_delete('sessions');
+    $query->condition('timestamp', $timestamp, '<');
+
+    // Check if we should delete anonymous only or both anonymous and authenticated users
+    $mode = variable_get(SESSION_EXPIRE_MODE, 0);
+    if (!$mode) {
+      $query->condition('uid', '0', '=');
+    }
+    $num_updated = $query->execute();
 
     // Write to the watchdog
-    watchdog('cron', 'Number of sessions deleted: '. db_affected_rows());
+    watchdog('cron', 'Number of sessions deleted: ' . $num_updated);
 
     // Set the last time we deleted
-    variable_set(SESSION_EXPIRE_LAST, time());
+    variable_set(SESSION_EXPIRE_LAST, REQUEST_TIME);
   }
 }
