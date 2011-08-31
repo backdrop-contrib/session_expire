@@ -7,14 +7,14 @@
  * @copyright Copyright 2007 Khalid Baheyeldin http://2bits.com
  */
 
-if(!defined('SESSION_EXPIRE_INTERVAL'))
-  define('SESSION_EXPIRE_INTERVAL', 'session_expire_interval');
 if(!defined('SESSION_EXPIRE_AGE'))
   define('SESSION_EXPIRE_AGE',      'session_expire_age');
 if(!defined('SESSION_EXPIRE_MODE'))
   define('SESSION_EXPIRE_MODE',     'session_expire_mode');
 if(!defined('SESSION_EXPIRE_LAST'))
-  define('SESSION_EXPIRE_LAST',     'session_expire_last');
+  define('SESSION_EXPIRE_LAST', 'session_expire_last');
+if(!defined('SESSION_EXPIRE_MAX_DELETIONS'))
+  define('SESSION_EXPIRE_MAX_DELETIONS', 'session_expire_max_deletions');
 
 /**
  * Implements hook_menu().
@@ -34,19 +34,13 @@ function session_expire_menu() {
 }
 
 function session_expire_settings() {
+  // We want a count
+  $query = db_select('sessions') ->execute();
+  $session_count = $query->countQuery();
+
   $form['session_expire_desc'] = array(
     '#type'  => 'markup',
-    '#value' => t('This module requires cron to be correctly configured and running for Drupal.'),
-  );
-
-  $interval = drupal_map_assoc(array(0, 7200, 10800, 21600, 43200, 86400, 172800, 259200, 604800), 'format_interval');
-  $interval['0'] = t('Everytime');
-  $form[SESSION_EXPIRE_INTERVAL] = array(
-    '#type'          => 'select',
-    '#title'         => t('Interval'),
-    '#default_value' => variable_get(SESSION_EXPIRE_INTERVAL, 86400),
-    '#options'       => $interval,
-    '#description'   => t('Run the cleanup at the specified interval. This tells Drupal how often to run the cleanup. On a busy site, you want that to be more frequent (e.g. every day at a minimum). You don\'t want it to be too frequent though (e.g. every hour), as it can tie up the sessions table for a long time. Cron must be configured to run more frequently than the value you chose here.')
+    '#value' => t('This module requires cron to be correctly configured and running for Drupal. You currently have !count rows in your sessions table.', array('!count' => $session_count)),
   );
 
   $period = drupal_map_assoc(array(1800, 3600, 7200, 10800, 21600, 43200, 86400, 172800, 259200, 604800, 1209600, 2419200), 'format_interval');
@@ -71,6 +65,16 @@ function session_expire_settings() {
     '#description'   => t('Types of sessions to discard. This option indicates whether only anonymous users, or both anonymous and authenticated users are expired. Note that if you choose authenticated users, they will be logged off and have to login again after the "age" specified above.'),
   );
 
+  $max_deletions = drupal_map_assoc(array(100, 500, 1000, 2500, 5000, 10000, 50000, 100000, 500000));
+  $max_deletions['0'] = t('Unlimited');
+  $form[SESSION_EXPIRE_MAX_DELETIONS] = array(
+    '#type'          => 'select',
+    '#title'         => t('Maximum deletions per run'),
+    '#default_value' => variable_get(SESSION_EXPIRE_MAX_DELETIONS, 1000),
+    '#options'       => $max_deletions,
+    '#description'   => t('Limit the number of sessions deleted during each invocation of the cron job by this amount. This is important if your sessions table is very large (e.g. more than 10,000 rows) because the job may run for a long time. One strategy is to use <a href="!url">Elysia Cron</a> to manage the frequency of execution of your cron jobs and set session_expire_cron to run hourly with this value set relatively low (1000 should be ok on most servers).', array('!url' => 'http://drupal.org/project/elysia_cron'))
+  );
+
   return system_settings_form($form);
 }
 
@@ -78,6 +82,7 @@ function session_expire_settings() {
  * Implements hook_cron().
  */
 function session_expire_cron() {
+  $affected_rows = 0;
   // Check if it is the first time this hook fires
   $last_run_time = variable_get(SESSION_EXPIRE_LAST, 0);
   if (!$last_run_time) {
@@ -98,6 +103,12 @@ function session_expire_cron() {
     $mode = variable_get(SESSION_EXPIRE_MODE, 0);
     if (!$mode) {
       $query->condition('uid', '0', '=');
+    }
+
+    // Delete the sessions
+    $max_deletions = (int) variable_get(SESSION_EXPIRE_MAX_DELETIONS, 1000);
+    if ($max_deletions > 0) {
+      $query->range(0, $max_deletions);
     }
     $num_updated = $query->execute();
 
