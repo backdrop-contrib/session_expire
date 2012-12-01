@@ -35,8 +35,10 @@ function session_expire_menu() {
 
 function session_expire_settings() {
   // We want a count
-  $query = db_select('sessions') ->execute();
-  $session_count = $query->countQuery();
+  $session_count = db_select('sessions')
+      ->countQuery()
+      ->execute()
+      ->fetchField();
 
   $form['session_expire_desc'] = array(
     '#markup' => t('This module requires cron to be correctly configured and running for Drupal. You currently have !count rows in your sessions table.', array('!count' => filter_xss_admin($session_count))),
