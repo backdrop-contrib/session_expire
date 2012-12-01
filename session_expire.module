@@ -39,8 +39,7 @@ function session_expire_settings() {
   $session_count = $query->countQuery();
 
   $form['session_expire_desc'] = array(
-    '#type'  => 'markup',
-    '#value' => t('This module requires cron to be correctly configured and running for Drupal. You currently have !count rows in your sessions table.', array('!count' => $session_count)),
+    '#markup' => t('This module requires cron to be correctly configured and running for Drupal. You currently have !count rows in your sessions table.', array('!count' => filter_xss_admin($session_count))),
   );
 
   $period = drupal_map_assoc(array(1800, 3600, 7200, 10800, 21600, 43200, 86400, 172800, 259200, 604800, 1209600, 2419200), 'format_interval');
