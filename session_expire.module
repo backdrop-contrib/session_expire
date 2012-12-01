@@ -44,7 +44,7 @@ function session_expire_settings() {
     '#markup' => t('This module requires cron to be correctly configured and running for Drupal. You currently have !count rows in your sessions table.', array('!count' => filter_xss_admin($session_count))),
   );
 
-  $period = drupal_map_assoc(array(1800, 3600, 7200, 10800, 21600, 43200, 86400, 172800, 259200, 604800, 1209600, 2419200), 'format_interval');
+  $period = drupal_map_assoc(array(60, 300, 900, 1800, 3600, 7200, 10800, 21600, 43200, 86400, 172800, 259200, 604800, 1209600, 2419200), 'format_interval');
   $period['1000000000'] = t('Never');
 
   $form[SESSION_EXPIRE_AGE] = array(
@@ -96,7 +96,6 @@ function session_expire_cron() {
     $timestamp = REQUEST_TIME - variable_get(SESSION_EXPIRE_AGE, 604800);
 
     // Perform the deletion
-    //db_query("DELETE FROM {sessions} WHERE timestamp < %d $extra_cond", $timestamp);
     $query = db_delete('sessions');
     $query->condition('timestamp', $timestamp, '<');
 
@@ -114,7 +113,7 @@ function session_expire_cron() {
     $num_updated = $query->execute();
 
     // Write to the watchdog
-    watchdog('cron', 'Number of sessions deleted: ' . $num_updated);
+    watchdog('cron', 'Number of sessions deleted: @num.', array('@num' => $num_updated));
 
     // Set the last time we deleted
     variable_set(SESSION_EXPIRE_LAST, REQUEST_TIME);
