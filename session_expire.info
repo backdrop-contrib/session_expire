@@ -1,5 +1,6 @@
 name = Session Expire
 description = Expires rows from the session table older than a certain time.
 core = 7.x
+configure = admin/config/system/session_expire
 
 files[] = session_expire.module
