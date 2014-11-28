@@ -135,7 +135,8 @@ function session_expire_cron() {
       // Order by timestamp, and grab the first $max_deletions
       $max_query->orderBy('timestamp', 'DESC')->range(0, $max_deletions);
       // Take the lowest value of the range
-      $min_timestamp = array_pop($max_query->execute()->fetchCol());
+      $result = $max_query->execute()->fetchCol();
+      $min_timestamp = array_pop($result);
 
       // We actually got a timestamp, so use it.
       if (isset($min_timestamp)) {
