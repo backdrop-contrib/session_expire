@@ -1,6 +1,5 @@
-name = Session Expire
-description = Expires rows from the session table older than a certain time.
-core = 7.x
-configure = admin/config/system/session_expire
-
-files[] = session_expire.module
+name = Session expire
+description = Deletes user sessions which have been idle longer than a configured time.
+backdrop = 1.x
+configure = admin/config/people/session_expire
+type = module
