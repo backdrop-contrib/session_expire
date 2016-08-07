@@ -6,6 +6,18 @@
  */
 
 /**
+ * Implements hook_config_info();
+ */
+function session_expire_config_info() {
+  $prefixes = array();
+  $prefixes['session_expire.settings'] = array(
+    'group' => t('Configuration'),
+    'label' => t('Session expire settings'),
+  );
+  return $prefixes;
+}
+
+/**
  * Implements hook_menu().
  *
  * @return array
