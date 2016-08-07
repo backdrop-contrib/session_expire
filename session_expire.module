@@ -11,7 +11,7 @@
  * @return array
  */
 function session_expire_menu() {
-  $items['admin/config/people/session_expire'] = array(
+  $items['admin/config/people/session-expire'] = array(
     'title' => 'Session expire',
     'description' => 'Settings for session expiry.',
     'page callback' => 'backdrop_get_form',

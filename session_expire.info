@@ -1,5 +1,5 @@
 name = Session expire
 description = Deletes user sessions which have been idle longer than a configured time.
 backdrop = 1.x
-configure = admin/config/people/session_expire
+configure = admin/config/people/session-expire
 type = module
