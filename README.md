@@ -21,7 +21,7 @@ The default settings delete sessions which have been idle longer than 1 week.
 Current Maintainer
 ------------------
 
-- David Norman (https://github.com/deekayen)
+- None
 
 Credits
 -------
